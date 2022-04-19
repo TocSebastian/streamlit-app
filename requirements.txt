@@ -4,8 +4,11 @@ pandas
 matplotlib==3.5.1
 seaborn==0.11.2
 Pillow==9.0.1
-scipy==1.8.0
-numpy==1.22.3
-requests==2.27.1
-bs4==0.0.1
-nltk==3.7
+scipy
+numpy
+requests
+bs4
+nltk
+datetime
+PIL
+pickle
