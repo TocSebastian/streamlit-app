@@ -11,7 +11,7 @@ import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import numpy as np
-import pickle as pkl
+import pickle5 as pkl
 import nltk
 nltk.download('vader_lexicon')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
