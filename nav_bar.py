@@ -17,7 +17,7 @@ nltk.download('vader_lexicon')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 
-img = Image.open('logo.svg.webp')
+img = Image.open('logo.svg.png')
 
 #make it look nice from the start
 st.set_page_config(page_title = 'Movies IMDb',page_icon=img, layout='wide',initial_sidebar_state='collapsed',)
