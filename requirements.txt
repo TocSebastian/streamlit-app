@@ -10,5 +10,4 @@ requests
 bs4
 nltk
 datetime
-PIL
 pickle
