@@ -44,8 +44,13 @@ menu_id = hc.nav_bar(
     sticky_nav=False, #at the top or not
     sticky_mode='pinned', #jumpy or not-jumpy, but sticky or pinned
 )
+
+
+
+if menu_id == 'Home':
+    st.title('Hello viewer!')
 # ------------------------------------------------------------------------------
-if menu_id == 'Movies Dataframe':
+elif menu_id == 'Movies Dataframe':
     st.title("Movies by Rating")
 
     df = pd.read_pickle('df8k.pkl')                                             # incarcare dataframe precum si 2 liste cu actori si directori de filmi fara duplicate
@@ -295,7 +300,7 @@ elif menu_id == "Movie":
         st.markdown(html_rating, unsafe_allow_html = True)
         st.markdown(html_votes, unsafe_allow_html = True)
         st.markdown('#')
-        st.markdown('#')                                                        # aici afisam nota si numarul de voturi folosind functiile html de mai devreme si deasemenea afisam si metascorul
+        st.markdown('#')                                                        # aici afisam nota si numarul de voturi folosind functiile html de mai devreme si deasemenea afisam si metascore-ul
         st.markdown('#')                                                        # intr-un mod highlithed in fucntie de valoare folosind functia de mai sus 'color_metascore' precum si f string
         st.markdown('#')
         st.markdown('#')
@@ -307,7 +312,7 @@ elif menu_id == "Movie":
         st.markdown(t, unsafe_allow_html=True)
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    movie_df
+    # movie_df  comentariu ----------------------------
 
     # movie_id = df[(df.name ==  movie) & (df.year == year_movie) ]['index'].values[0]
     # movie_link = movies_with_links[movies_with_links.index == movie_id]['link'].values[0]
@@ -323,9 +328,10 @@ elif menu_id == "Movie":
         dict_actors['name'].append(x.img['alt'])
         dict_actors['img_link'].append(x.img['src'])
     actors_images = pd.DataFrame(dict_actors)
-    actors_images
+    # actors_images comentariu ------------------------
 #     x.img['srcset'].split(',')
 
+    st.markdown('#')
     st.subheader('Actors')
 
     col_movie1,col_movie2,col_movie3,col_movie4,col_movie5,col_movie6,col_movie7 = st.columns(7)                                                                                                                                  # Actori care joaca in film
@@ -373,8 +379,9 @@ elif menu_id == "Movie":
 
     cs = cs_pickle()
 
+    st.markdown('#')
     st.subheader('Recommended Movies')
-    movie_df
+    # movie_df comentariu -----------------------------
 
     movie_id = movie_df.index.values[0]
 
@@ -498,18 +505,24 @@ elif menu_id == "Movie":
 
 
 # ----------------------------------------------------------------------------------------------------------------------------
+    st.markdown('#')
     atribut = st.selectbox('Alege un parametru:',['nota','metascore','votes_numerical','duration_numerical'])
                                                                                                                               # selectam un atribut si afisam dataframe-ul corespunzator
     df_atribut = pd.DataFrame(df[atribut].value_counts().reset_index().rename(columns={'index':atribut,atribut:'count'}))
-    df_atribut
+    # df_atribut comentariu ---------------------------
 # ----------------------------------------------------------------------------------------------------------------------------
     try:
+        # st.markdown('##')
         percentile = df_atribut[df_atribut[atribut] <int(movie_df[atribut].values[0])]['count'].sum()/df_atribut['count'].sum()   # pe baza atributului ales calculam percentile
-        percentile
+        t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {str(round(percentile,5))} </span> for the attribute <span class='bold'>{atribut}</span> """
+        st.markdown(t, unsafe_allow_html=True)
+
+
+
     except:
         st.write(f'Movie does not have {atribut}')
 # ----------------------------------------------------------------------------------------------------------------------------
-
+    st.markdown("##")
     log_value = st.checkbox('Logarithm')   #parametru pentru functia 'plt.hist' de mai jos
 # ---------------------------------------------------------------------------------------
     def get_ox_index(val,ox):
