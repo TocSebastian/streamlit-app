@@ -354,56 +354,71 @@ elif menu_id == "Movie":
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    def cs_pickle():
+        with open('cs1.pkl','rb') as f:
+            cs1pkl = pkl.load(f)
+        with open('cs2.pkl','rb') as f:
+            cs2pkl = pkl.load(f)
+        with open('cs3.pkl','rb') as f:
+            cs3pkl = pkl.load(f)
+        with open('cs4.pkl','rb') as f:
+            cs4pkl = pkl.load(f)
+        with open('cs5.pkl','rb') as f:
+            cs5pkl = pkl.load(f)
+        with open('cs6.pkl','rb') as f:
+            cs6pkl = pkl.load(f)
 
-    # with open('cosine_similarity.pkl','rb') as f:
-    #     cs = pkl.load(f)
-    #
-    # st.subheader('Recommended Movies')
-    # movie_df
-    #
-    # movie_id = movie_df.index.values[0]
-    #
-    # scores = list(enumerate(cs[movie_id]))
-    # sorted_scores = sorted(scores, key = lambda x: x[1], reverse = True)
-    # sorted_scores = sorted_scores[1:]
-    #
-    # colr1,colr2,colr3,colr4,colr5 = st.columns(5)
-    # space = '   '
-    # with colr1:
-    #
-    #     movie_title = df[df.index == sorted_scores[0][0]]['name'].values[0]
-    #     year_of_movie = df[df.index ==  sorted_scores[0][0]]['year'].values[0]
-    #     st.write(movie_title,str(year_of_movie))
-    #     st.image(df[df.name == movie_title]['images_links'].values[0])
-    #     st.write(sorted_scores[0][1])
-    # with colr2:
-    #
-    #     movie_title = df[df.index == sorted_scores[1][0]]['name'].values[0]                                             #Filme recomandate
-    #     year_of_movie = df[df.index ==  sorted_scores[1][0]]['year'].values[0]
-    #     st.write(movie_title,str(year_of_movie))
-    #     st.image(df[df.name == movie_title]['images_links'].values[0])
-    #     st.write(sorted_scores[1][1])
-    # with colr3:
-    #
-    #     movie_title = df[df.index == sorted_scores[2][0]]['name'].values[0]
-    #     year_of_movie = df[df.index ==  sorted_scores[2][0]]['year'].values[0]
-    #     st.write(movie_title,str(year_of_movie))
-    #     st.image(df[df.name == movie_title]['images_links'].values[0])
-    #     st.write(sorted_scores[2][1])
-    # with colr4:
-    #
-    #     movie_title = df[df.index == sorted_scores[3][0]]['name'].values[0]
-    #     year_of_movie = df[df.index ==  sorted_scores[3][0]]['year'].values[0]
-    #     st.write(movie_title,str(year_of_movie))
-    #     st.image(df[df.name == movie_title]['images_links'].values[0])
-    #     st.write(sorted_scores[3][1])
-    # with colr5:
-    #
-    #     movie_title = df[df.index == sorted_scores[4][0]]['name'].values[0]
-    #     year_of_movie = df[df.index ==  sorted_scores[4][0]]['year'].values[0]
-    #     st.write(movie_title,str(year_of_movie))
-    #     st.image(df[df.name == movie_title]['images_links'].values[0])
-    #     st.write(sorted_scores[4][1])
+        cs = np.hstack([cs1pkl,cs2pkl,cs3pkl,cs4pkl,cs5pkl,cs6pkl])
+        return cs
+
+    cs = cs_pickle()
+
+    st.subheader('Recommended Movies')
+    movie_df
+
+    movie_id = movie_df.index.values[0]
+
+    scores = list(enumerate(cs[movie_id]))
+    sorted_scores = sorted(scores, key = lambda x: x[1], reverse = True)
+    sorted_scores = sorted_scores[1:]
+
+    colr1,colr2,colr3,colr4,colr5 = st.columns(5)
+    space = '   '
+    with colr1:
+
+        movie_title = df[df.index == sorted_scores[0][0]]['name'].values[0]
+        year_of_movie = df[df.index ==  sorted_scores[0][0]]['year'].values[0]
+        st.write(movie_title,str(year_of_movie))
+        st.image(df[df.name == movie_title]['images_links'].values[0])
+        st.write(sorted_scores[0][1])
+    with colr2:
+
+        movie_title = df[df.index == sorted_scores[1][0]]['name'].values[0]                                             #Filme recomandate
+        year_of_movie = df[df.index ==  sorted_scores[1][0]]['year'].values[0]
+        st.write(movie_title,str(year_of_movie))
+        st.image(df[df.name == movie_title]['images_links'].values[0])
+        st.write(sorted_scores[1][1])
+    with colr3:
+
+        movie_title = df[df.index == sorted_scores[2][0]]['name'].values[0]
+        year_of_movie = df[df.index ==  sorted_scores[2][0]]['year'].values[0]
+        st.write(movie_title,str(year_of_movie))
+        st.image(df[df.name == movie_title]['images_links'].values[0])
+        st.write(sorted_scores[2][1])
+    with colr4:
+
+        movie_title = df[df.index == sorted_scores[3][0]]['name'].values[0]
+        year_of_movie = df[df.index ==  sorted_scores[3][0]]['year'].values[0]
+        st.write(movie_title,str(year_of_movie))
+        st.image(df[df.name == movie_title]['images_links'].values[0])
+        st.write(sorted_scores[3][1])
+    with colr5:
+
+        movie_title = df[df.index == sorted_scores[4][0]]['name'].values[0]
+        year_of_movie = df[df.index ==  sorted_scores[4][0]]['year'].values[0]
+        st.write(movie_title,str(year_of_movie))
+        st.image(df[df.name == movie_title]['images_links'].values[0])
+        st.write(sorted_scores[4][1])
 
 # ------------------------------------------------------------------------------------------------------------
 
