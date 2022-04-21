@@ -333,6 +333,7 @@ elif menu_id == "Movie":
 
     st.markdown('#')
     st.subheader('Actors')
+    not_found = 'https://t3.ftcdn.net/jpg/03/35/13/14/360_F_335131435_DrHIQjlOKlu3GCXtpFkIG1v0cGgM9vJC.jpg'
 
     col_movie1,col_movie2,col_movie3,col_movie4,col_movie5,col_movie6,col_movie7 = st.columns(7)                                                                                                                                  # Actori care joaca in film
 
@@ -346,17 +347,34 @@ elif menu_id == "Movie":
         st.write(actors_images.iloc[2,0])
         st.image(actors_images.iloc[2,1])
     with col_movie4:
-        st.write(actors_images.iloc[3,0])
-        st.image(actors_images.iloc[3,1])
+        try:
+            st.write(actors_images.iloc[3,0])
+            st.image(actors_images.iloc[3,1])
+        except:
+            st.write('Not found')
+            st.image(not_found,width=180)
     with col_movie5:
-        st.write(actors_images.iloc[4,0])
-        st.image(actors_images.iloc[4,1])
+
+        try:
+            st.write(actors_images.iloc[4,0])
+            st.image(actors_images.iloc[4,1])
+        except:
+            st.write('Not found')
+            st.image(not_found,width=180)
     with col_movie6:
-        st.write(actors_images.iloc[5,0])
-        st.image(actors_images.iloc[5,1])
+        try:
+            st.write(actors_images.iloc[5,0])
+            st.image(actors_images.iloc[5,1])
+        except:
+            st.write('Not found')
+            st.image(not_found,width=180)
     with col_movie7:
-        st.write(actors_images.iloc[6,0])
-        st.image(actors_images.iloc[6,1])
+        try:
+            st.write(actors_images.iloc[6,0])
+            st.image(actors_images.iloc[6,1])
+        except:
+            st.write('Not found')
+            st.image(not_found,width=180)
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -397,35 +415,41 @@ elif menu_id == "Movie":
         year_of_movie = df[df.index ==  sorted_scores[0][0]]['year'].values[0]
         st.write(movie_title,str(year_of_movie))
         st.image(df[df.name == movie_title]['images_links'].values[0])
-        st.write(sorted_scores[0][1])
+        t =  f"""  <span class='bold'>{round(sorted_scores[0][1],2)*100} </span> % Similarity """
+        st.markdown(t, unsafe_allow_html=True)
+
     with colr2:
 
         movie_title = df[df.index == sorted_scores[1][0]]['name'].values[0]                                             #Filme recomandate
         year_of_movie = df[df.index ==  sorted_scores[1][0]]['year'].values[0]
         st.write(movie_title,str(year_of_movie))
         st.image(df[df.name == movie_title]['images_links'].values[0])
-        st.write(sorted_scores[1][1])
+        t =  f"""  <span class='bold'>{round(sorted_scores[1][1],2)*100} </span> % Similarity """
+        st.markdown(t, unsafe_allow_html=True)
     with colr3:
 
         movie_title = df[df.index == sorted_scores[2][0]]['name'].values[0]
         year_of_movie = df[df.index ==  sorted_scores[2][0]]['year'].values[0]
         st.write(movie_title,str(year_of_movie))
         st.image(df[df.name == movie_title]['images_links'].values[0])
-        st.write(sorted_scores[2][1])
+        t =  f"""  <span class='bold'>{round(sorted_scores[2][1],2)*100} </span> % Similarity """
+        st.markdown(t, unsafe_allow_html=True)
     with colr4:
 
         movie_title = df[df.index == sorted_scores[3][0]]['name'].values[0]
         year_of_movie = df[df.index ==  sorted_scores[3][0]]['year'].values[0]
         st.write(movie_title,str(year_of_movie))
         st.image(df[df.name == movie_title]['images_links'].values[0])
-        st.write(sorted_scores[3][1])
+        t =  f"""  <span class='bold'>{round(sorted_scores[3][1],2)*100} </span> % Similarity """
+        st.markdown(t, unsafe_allow_html=True)
     with colr5:
 
         movie_title = df[df.index == sorted_scores[4][0]]['name'].values[0]
         year_of_movie = df[df.index ==  sorted_scores[4][0]]['year'].values[0]
         st.write(movie_title,str(year_of_movie))
         st.image(df[df.name == movie_title]['images_links'].values[0])
-        st.write(sorted_scores[4][1])
+        t =  f"""  <span class='bold'>{round(sorted_scores[4][1],2)*100} </span> % Similarity """
+        st.markdown(t, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------------------------------------
 
@@ -510,11 +534,17 @@ elif menu_id == "Movie":
                                                                                                                               # selectam un atribut si afisam dataframe-ul corespunzator
     df_atribut = pd.DataFrame(df[atribut].value_counts().reset_index().rename(columns={'index':atribut,atribut:'count'}))
     # df_atribut comentariu ---------------------------
+
 # ----------------------------------------------------------------------------------------------------------------------------
     try:
         # st.markdown('##')
-        percentile = df_atribut[df_atribut[atribut] <int(movie_df[atribut].values[0])]['count'].sum()/df_atribut['count'].sum()   # pe baza atributului ales calculam percentile
+        percentile = df_atribut[df_atribut[atribut] < float(movie_df[atribut].values[0])]['count'].sum()/df_atribut['count'].sum()   # pe baza atributului ales calculam percentile
+        rank = percentile * 8332
         t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {str(round(percentile,5))} </span> for the attribute <span class='bold'>{atribut}</span> """
+        # t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {percentile} </span> for the attribute <span class='bold'>{atribut}</span> """
+        st.markdown(t, unsafe_allow_html=True)
+        t =  f""" The Movie <span class='bold'>{movie} </span> has the Rank <span class='bold'> {round(rank)} </span>/8331 for the attribute <span class='bold'>{atribut}</span> """
+        # t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {percentile} </span> for the attribute <span class='bold'>{atribut}</span> """
         st.markdown(t, unsafe_allow_html=True)
 
 
