@@ -15,7 +15,7 @@ import pickle as pkl
 import nltk
 nltk.download('vader_lexicon')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-
+import imdb
 
 img = Image.open('logo.svg.png')
 
@@ -454,66 +454,67 @@ elif menu_id == "Movie":
 # ------------------------------------------------------------------------------------------------------------
 
     # st.header('Sentiment')
-    cols1,cols2 = st.columns([1,7])
-    with cols1:
-        st.header('Sentiment')
+    with st.expander('Sentiment'):
+        cols1,cols2 = st.columns([1,7])
+        with cols1:
+            st.header('Sentiment')
 
-    with cols2:
-        st.write(' ')
-        st.write(' ')
-        sentiment_checkbox = st.checkbox('')
-    if sentiment_checkbox:
+        with cols2:
+            st.write(' ')
+            st.write(' ')
+            sentiment_checkbox = st.checkbox('')
+        if sentiment_checkbox:
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        link = movie_df['movie_link'].values[0]
-        @st.cache(allow_output_mutation=True)
-        def df_sentiment(link_movie):
-            url = (
-                link + "reviews/_ajax?ref_=undefined&paginationKey={}"
-            )
-            key = ""
-            data = {"title": [], "review": [],"score":[]}
-
-            while True:
-                response = requests.get(url.format(key))
-                soup = BeautifulSoup(response.content, "html.parser")
-                # Find the pagination key
-                pagination_key = soup.find("div", class_="load-more-data")                                  #scraper pentru movie reviews pe care le stocam in df_movie_sentiment
-                if not pagination_key:
-                    break
-
-                # Update the `key` variable in-order to scrape more reviews
-                key = pagination_key["data-key"]
-                for title, review, score in zip(
-                    soup.find_all(class_="title"), soup.find_all(class_="text show-more__control"),soup.find_all('span',class_="rating-other-user-rating")
-                ):
-                    data['score'].append(int(score.find_all('span')[0].text))
-                    data["title"].append(title.get_text(strip=True))
-                    data["review"].append(review.get_text())
-            return pd.DataFrame(data)
-
-        df_movie_sentiment = df_sentiment(link)
     # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
-        def sentiment_analyzer(text):
-            score = SentimentIntensityAnalyzer().polarity_scores(text)
-            pos = score['pos']
-            neg = score['neg']
-            if pos > neg:
-              return ('positive')                                                   # functie pentru a returna coeficientii sentimentului: pos, neg, neu
-            elif pos < neg:
-              return ('negative')
-            else:
-              return ('neutral')
 
-        df_movie_sentiment['sentiment'] = df_movie_sentiment['review'].apply(sentiment_analyzer)
+            link = movie_df['movie_link'].values[0]
+            @st.cache(allow_output_mutation=True)
+            def df_sentiment(link_movie):
+                url = (
+                    link + "reviews/_ajax?ref_=undefined&paginationKey={}"
+                )
+                key = ""
+                data = {"title": [], "review": [],"score":[]}
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+                while True:
+                    response = requests.get(url.format(key))
+                    soup = BeautifulSoup(response.content, "html.parser")
+                    # Find the pagination key
+                    pagination_key = soup.find("div", class_="load-more-data")                                  #scraper pentru movie reviews pe care le stocam in df_movie_sentiment
+                    if not pagination_key:
+                        break
 
-        positive_percentage = round(df_movie_sentiment.sentiment.value_counts()['positive']/df_movie_sentiment.sentiment.count(),2)
-        avg_score_users = round(df_movie_sentiment.score.mean(),2)
-        st.write(str(positive_percentage),'% of users have a Positive Sentiment')                    #calculeaza procentajul de review-uri pozitive si media notelor data de cei care au lasat review
-        st.write(str(avg_score_users),'/10 score given by users who left a review')
+                    # Update the `key` variable in-order to scrape more reviews
+                    key = pagination_key["data-key"]
+                    for title, review, score in zip(
+                        soup.find_all(class_="title"), soup.find_all(class_="text show-more__control"),soup.find_all('span',class_="rating-other-user-rating")
+                    ):
+                        data['score'].append(int(score.find_all('span')[0].text))
+                        data["title"].append(title.get_text(strip=True))
+                        data["review"].append(review.get_text())
+                return pd.DataFrame(data)
+
+            df_movie_sentiment = df_sentiment(link)
+        # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+            def sentiment_analyzer(text):
+                score = SentimentIntensityAnalyzer().polarity_scores(text)
+                pos = score['pos']
+                neg = score['neg']
+                if pos > neg:
+                  return ('positive')                                                   # functie pentru a returna coeficientii sentimentului: pos, neg, neu
+                elif pos < neg:
+                  return ('negative')
+                else:
+                  return ('neutral')
+
+            df_movie_sentiment['sentiment'] = df_movie_sentiment['review'].apply(sentiment_analyzer)
+
+    # ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            positive_percentage = round(df_movie_sentiment.sentiment.value_counts()['positive']/df_movie_sentiment.sentiment.count(),2)
+            avg_score_users = round(df_movie_sentiment.score.mean(),2)
+            st.write(str(positive_percentage),'% of users have a Positive Sentiment')                    #calculeaza procentajul de review-uri pozitive si media notelor data de cei care au lasat review
+            st.write(str(avg_score_users),'/10 score given by users who left a review')
 
 
 
@@ -529,45 +530,162 @@ elif menu_id == "Movie":
 
 
 # ----------------------------------------------------------------------------------------------------------------------------
-    st.markdown('#')
-    atribut = st.selectbox('Alege un parametru:',['nota','metascore','votes_numerical','duration_numerical'])
-                                                                                                                              # selectam un atribut si afisam dataframe-ul corespunzator
-    df_atribut = pd.DataFrame(df[atribut].value_counts().reset_index().rename(columns={'index':atribut,atribut:'count'}))
-    # df_atribut comentariu ---------------------------
+    with st.expander('Parameter Analysis'):
+        st.markdown('#')
+        atribut = st.selectbox('Alege un parametru:',['nota','metascore','votes_numerical','duration_numerical'])
+                                                                                                                                  # selectam un atribut si afisam dataframe-ul corespunzator
+        df_atribut = pd.DataFrame(df[atribut].value_counts().reset_index().rename(columns={'index':atribut,atribut:'count'}))
+        # df_atribut comentariu ---------------------------
 
-# ----------------------------------------------------------------------------------------------------------------------------
-    try:
-        # st.markdown('##')
-        percentile = df_atribut[df_atribut[atribut] < float(movie_df[atribut].values[0])]['count'].sum()/df_atribut['count'].sum()   # pe baza atributului ales calculam percentile
-        rank = percentile * 8332
-        t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {str(round(percentile,5))} </span> for the attribute <span class='bold'>{atribut}</span> """
-        # t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {percentile} </span> for the attribute <span class='bold'>{atribut}</span> """
-        st.markdown(t, unsafe_allow_html=True)
-        t =  f""" The Movie <span class='bold'>{movie} </span> has the Rank <span class='bold'> {round(rank)} </span>/8331 for the attribute <span class='bold'>{atribut}</span> """
-        # t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {percentile} </span> for the attribute <span class='bold'>{atribut}</span> """
-        st.markdown(t, unsafe_allow_html=True)
+    # ----------------------------------------------------------------------------------------------------------------------------
+        try:
+            # st.markdown('##')
+            percentile = df_atribut[df_atribut[atribut] < float(movie_df[atribut].values[0])]['count'].sum()/df_atribut['count'].sum()   # pe baza atributului ales calculam percentile
+            rank = percentile * 8332
+            t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {str(round(percentile,5))} </span>percentile for the attribute <span class='bold'>{atribut}</span> """
+            # t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {percentile} </span> for the attribute <span class='bold'>{atribut}</span> """
+            st.markdown(t, unsafe_allow_html=True)
+            t =  f""" The Movie <span class='bold'>{movie} </span> has the Rank <span class='bold'> {round(rank)} </span>/8331 for the attribute <span class='bold'>{atribut}</span> """
+            # t =  f""" The Movie <span class='bold'>{movie} </span> is in the <span class='bold'> {percentile} </span> for the attribute <span class='bold'>{atribut}</span> """
+            st.markdown(t, unsafe_allow_html=True)
 
 
 
-    except:
-        st.write(f'Movie does not have {atribut}')
-# ----------------------------------------------------------------------------------------------------------------------------
-    st.markdown("##")
-    log_value = st.checkbox('Logarithm')   #parametru pentru functia 'plt.hist' de mai jos
-# ---------------------------------------------------------------------------------------
-    def get_ox_index(val,ox):
-        for i in range(0,len(ox)-1):
-            if ox[i] <= val <= ox[i+1]:
-                index = i
-        return index
-# -----------------------------------------------------------------------------------------
-    fig,ax = plt.subplots()
-    n,bins,patches = ax.hist(x = df[atribut],bins=45,ec='white',log = log_value)
+        except:
+            st.write(f'Movie does not have {atribut}')
+    # ----------------------------------------------------------------------------------------------------------------------------
+        st.markdown("##")
+        log_value = st.checkbox('Logarithm')   #parametru pentru functia 'plt.hist' de mai jos
+    # ---------------------------------------------------------------------------------------
+        def get_ox_index(val,ox):
+            for i in range(0,len(ox)-1):
+                if ox[i] <= val <= ox[i+1]:
+                    index = i
+            return index
+    # -----------------------------------------------------------------------------------------
+        fig,ax = plt.subplots()
+        n,bins,patches = ax.hist(x = df[atribut],bins=45,ec='white',log = log_value)
 
-    try:
-        a=get_ox_index(movie_df[atribut].values[0],list(bins))
-        patches[a].set_fc('orange')                                                        # afisam graficul si coloram portocaliu bara corespunzatoare valorii atributului filmului selectat
-        st.pyplot(fig)
-    except:
-        st.write(f'Can not plot the graph because Movie does not have {atribut}')
+        try:
+            a=get_ox_index(movie_df[atribut].values[0],list(bins))
+            patches[a].set_fc('orange')                                                        # afisam graficul si coloram portocaliu bara corespunzatoare valorii atributului filmului selectat
+            st.pyplot(fig)
+        except:
+            st.write(f'Can not plot the graph because Movie does not have {atribut}')
 # ------------------------------------------------------------------------------------------
+    with st.expander('Budget and Box Office'):
+        moviesDB = imdb.IMDb()
+        movies = moviesDB.search_movie(movie_df['name'].values[0])
+        # movie_df['name'].values[0]
+        title = movies[0]['title']
+        year = movies[0]['year']
+
+
+        movie_id = movies[0].getID()
+        movie = moviesDB.get_movie(movie_id)
+        try:
+            budget = int(movie['box office']['Budget'].split(' ')[0][1:].replace(',',''))
+            box_office = int(movie['box office']['Cumulative Worldwide Gross'].split(' ')[0][1:].replace(',',''))
+
+            # budget
+            # box_office
+
+            df_budget_box_office = pd.read_pickle('df_budget_box_office.pkl')
+            budget_avg = df_budget_box_office['Production Budget'].mean()
+            box_office_avg = df_budget_box_office['Worldwide Gross'].mean()
+
+            def millions(x):
+                return (x//10**6)
+
+            def dollar_converter(x):
+                if x//10**9 >= 1:
+                    return str(round(x/10**9,2)) + ' Billion Dollars'
+                elif x//10**6 >= 1:
+                    return str(round(x/10**6,2)) + ' Million Dollars'
+                elif x//10**3 >= 1:
+                    return str(round(x/10**3,2)) + ' Thounsands Dollars'
+                else:
+                    return str(x) + ' Dollars'
+
+
+            labels = [movie_df['name'].values[0],'Average']
+            budget_l = [millions(budget),millions(budget_avg)]
+            box_office_l = [millions(box_office-budget),millions(box_office_avg-budget_avg)]
+
+            width = 0.4     # the width of the bars: can also be len(x) sequence
+
+            fig, ax = plt.subplots()
+
+            ax.bar(labels, budget_l, width, label='Budget')
+            ax.bar(labels, box_office_l, width,  bottom=budget_l,
+                   label='Box Office')
+
+            ax.set_ylabel('Million of Dollars')
+            ax.set_title('Profits')
+            ax.legend()
+
+            plt.show()
+            # budget_avg
+            # box_office_avg
+            # budget_l
+            # box_office_l
+
+            cfig1, cfig2, cfig3 = st.columns([10,1,8])
+
+
+            with cfig1:
+                st.pyplot(fig)
+            with cfig3:
+
+                movie_budget = f"""<div><span class='bold'>Production Budget: {dollar_converter(budget)} </span></div>"""
+                movie_box_office = f"""<div><span class='bold'>Worldwide Gross: {dollar_converter(box_office)} </span></div>"""
+
+                movie_budget_avg = f"""<div><span class='bold'>Production Budget: {dollar_converter(budget_avg)} </span></div>"""
+                movie_box_office_avg = f"""<div><span class='bold'>Worldwide Gross: {dollar_converter(box_office_avg)} </span></div>"""
+
+                st.header(movie_df['name'].values[0])
+                st.markdown(movie_budget, unsafe_allow_html=True)
+                st.markdown(movie_box_office, unsafe_allow_html=True)
+
+                st.markdown('###')
+
+                st.header('Average values for a Movie')
+                st.markdown(movie_budget_avg, unsafe_allow_html=True)
+                st.markdown(movie_box_office_avg, unsafe_allow_html=True)
+        except:
+            st.header('No Budget and Box Office data for the movie ' + movie_df['name'].values[0])
+            st.image('not_possible.jpg')
+        # st.video('https://www.youtube.com/watch?v=coY2IA-oBvw&ab_channel=FuckyouGoogle',format="video/mp4", start_time=0)
+# -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    with st.expander('Votes Distribution'):
+        vd1,vd2,vd3 = st.columns([10,1,6])
+        with vd1:
+            url = movie_df['movie_link'].values[0] + 'ratings'
+            df_movie_ratings = pd.DataFrame()
+            page = requests.get(url).text
+            doc = BeautifulSoup(page, 'html.parser')
+            ratings = doc.find('table').find_all('tr')[1:]
+            i = 10
+            for rating in ratings:
+                df_movie_ratings.at[0,i] = int(rating.find(class_="leftAligned").text.replace(',',''))
+                i=i-1
+
+            row = df_movie_ratings.iloc[0]
+            row.plot(kind='bar')
+            # plt.show()
+
+            st.pyplot(fig=plt)
+        with vd3:
+            def number_converter(x):
+                if x//10**6 >= 1:
+                    return str(round(x/10**6,2)) + ' M Votes'
+                elif x//10**3 >= 1:
+                    return str(round(x/10**3,2)) + ' K Votes'
+                else:
+                    return str(x) + ' Votes'
+            st.markdown('##')
+            for i in range(10,0,-1):
+                t=f"""<div>Rating {i}<span class='bold'>: {number_converter(df_movie_ratings[i].values[0])} </span></div>"""
+                st.markdown(t,unsafe_allow_html=True)
+                st.write(' ')
