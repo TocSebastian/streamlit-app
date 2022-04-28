@@ -10,4 +10,4 @@ requests
 bs4
 nltk
 datetime
-imdb
+imdbpy
