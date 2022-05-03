@@ -11,3 +11,5 @@ bs4
 nltk
 datetime
 imdbpy
+altair
+wordcloud
