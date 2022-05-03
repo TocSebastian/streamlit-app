@@ -16,6 +16,9 @@ import nltk
 nltk.download('vader_lexicon')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import imdb
+import altair as alt
+import ast
+from wordcloud import WordCloud, STOPWORDS
 
 img = Image.open('logo.svg.png')
 
@@ -26,6 +29,7 @@ st.set_page_config(page_title = 'Movies IMDb',page_icon=img, layout='wide',initi
 menu_data = [
     {'icon': "bi bi-camera-reels-fill", 'label':"Movies Dataframe"},
     {'id':'Movie','icon':"bi bi-film",'label':"Movie"},
+    {'id':'Analytics','icon':"bi bi-bar-chart-line",'label':"Analytics"}
     # {'icon': "fa-solid fa-radar",'label':"Dropdown1", 'submenu':[{'id':' subid11','icon': "fa fa-paperclip", 'label':"Sub-item 1"},{'id':'subid12','icon': "💀", 'label':"Sub-item 2"},{'id':'subid13','icon': "fa fa-database", 'label':"Sub-item 3"}]},
     # {'icon': "far fa-chart-bar", 'label':"Chart"},#no tooltip message
     # {'id':' Crazy return value 💀','icon': "💀", 'label':"Calendar"},
@@ -595,7 +599,7 @@ elif menu_id == "Movie":
             box_office_avg = df_budget_box_office['Worldwide Gross'].mean()
 
             def millions(x):
-                return (x//10**6)
+                return round((x/10**6),2)
 
             def dollar_converter(x):
                 if x//10**9 >= 1:
@@ -613,22 +617,26 @@ elif menu_id == "Movie":
             box_office_l = [millions(box_office-budget),millions(box_office_avg-budget_avg)]
 
             width = 0.4     # the width of the bars: can also be len(x) sequence
-
+# ------------------------------------------------------------------------------
             fig, ax = plt.subplots()
 
             ax.bar(labels, budget_l, width, label='Budget')
             ax.bar(labels, box_office_l, width,  bottom=budget_l,
-                   label='Box Office')
+                   label='Box Office')                                        # another way to plot budget and box office using matplotlib
 
             ax.set_ylabel('Million of Dollars')
             ax.set_title('Profits')
             ax.legend()
-
-            plt.show()
+# ------------------------------------------------------------------------------
+            # plt.show()
             # budget_avg
             # box_office_avg
             # budget_l
             # box_office_l
+
+            dict_nou = {'Budget': budget_l,'Box Office':box_office_l,'Type':[movie_df['name'].values[0],'Average Moivie']}
+            df_now = pd.DataFrame(dict_nou)
+            df_now.set_index('Type',inplace = True)
 
             cfig1, cfig2, cfig3 = st.columns([10,1,8])
 
@@ -671,11 +679,14 @@ elif menu_id == "Movie":
                 df_movie_ratings.at[0,i] = int(rating.find(class_="leftAligned").text.replace(',',''))
                 i=i-1
 
+            df_movie_ratings = df_movie_ratings.rename(index = {0:'Votes'})
             row = df_movie_ratings.iloc[0]
-            row.plot(kind='bar')
-            # plt.show()
+            fig = row.plot(kind='bar')
+            plt.show()
+            st.write(' ')
+            st.bar_chart(row,height=450)
 
-            st.pyplot(fig=plt)
+            # st.pyplot(fig=plt)
         with vd3:
             def number_converter(x):
                 if x//10**6 >= 1:
@@ -689,3 +700,217 @@ elif menu_id == "Movie":
                 t=f"""<div>Rating {i}<span class='bold'>: {number_converter(df_movie_ratings[i].values[0])} </span></div>"""
                 st.markdown(t,unsafe_allow_html=True)
                 st.write(' ')
+
+
+
+
+elif menu_id == "Analytics":
+
+    st.header('Analytics')
+    df = pd.read_pickle('df_movies_budgets_actors_2022.pkl')
+
+# ---------------------------------------------------------------------------------------------------------------------
+
+    with st.expander('Directors'):
+
+
+
+        df['Counts'] = df.groupby('director')['director'].transform('count')
+
+
+
+
+        df_directors = df[df.groupby('director')['director'].transform('size') > 4]
+
+        num_movies = st.slider('Number of movies', 5, int(df_directors['director'].value_counts().max()), 10)
+
+        df_directors = df[df.groupby('director')['director'].transform('size') >= num_movies]
+
+        col_director1, col_director2 = st.columns(2)
+
+        with col_director1:
+
+            director_param = st.selectbox('Select parameter:',['Worldwide Gross','nota','metascore','votes_numerical','duration_numerical'])
+
+        with col_director2:
+            gross_func = st.selectbox('Select function:',['mean','max','min'])
+
+        # df_directors
+
+        df_top_directors = df_directors.groupby(['director','Counts']).agg({director_param:gross_func})
+
+        # df_top_directors
+
+        def round_column(x):
+            return round(x,2)
+
+
+        df_top_directors = df_top_directors[director_param].apply(round_column)
+        df_top_directors
+
+        top_directors = pd.DataFrame(df_top_directors).sort_values('Counts',ascending = False)
+        top_directors.reset_index(inplace = True)
+
+
+        top_directors['Director/Count'] = top_directors['director']+ ' (' + top_directors['Counts'].astype(str) + ')'
+        # top_directors
+
+
+        # fig = plt.figure(figsize = (8,4))
+        # sns.barplot(x =director_param, y = 'Director/Count', data = top_directors.iloc[:20])
+#-------------------------------------------------------------------------------
+        bars = alt.Chart(top_directors).transform_window(rank='rank('+ director_param +')',sort=[alt.SortField(director_param, order='descending')]).transform_filter(alt.datum.rank <= 20).mark_bar().encode(
+        x = director_param,
+        y =  alt.Y('Director/Count', sort = '-x'),
+        tooltip = ['director',director_param]
+        )
+
+        text = bars.mark_text(
+        align='left',
+        baseline='middle',                                                          # altair plot
+        dx=3  # Nudges text to right so it doesn't appear on top of the bar
+        ).encode(
+            text=director_param
+        )
+
+        st.markdown('#')
+        st.altair_chart(bars,use_container_width=True)  #(bars + text).properties(height=900) in loc de bars
+
+# ------------------------------------------------------------------------------
+    with st.expander('Budget and Worldwide Gross'):
+
+
+
+        df = pd.read_pickle('df_movies_budgets_actors.pkl')
+        df_ratings = pd.read_pickle('df8k.pkl')
+        # df_ratings
+        df_new = pd.merge(df_ratings[['name', 'nota']], df,  left_on = 'name', right_on = 'Name')
+        df_new = df_new.sort_values('nota', ascending = False).drop_duplicates('name', keep = 'first')
+        # df1.sort_values('Count').drop_duplicates('Name', keep='last')
+        df_new.shape
+
+        num_of_movies = st.slider('Number of Movies displayed:',100,df_new.shape[0],100,50)
+
+        base = alt.Chart(df_new.iloc[:num_of_movies]).mark_circle().encode(
+        x = 'Production Budget', y = 'Worldwide Gross', color = 'nota', size = 'Production Budget', tooltip = ['name','Production Budget','Worldwide Gross','nota'])
+
+        # chart = alt.layer(
+        # base.mark_rule().encode(alt.Y('Worldwide Gross', title='Price',
+        #                             scale=alt.Scale(zero=False)), alt.Y2('Worldwide Gross'))).interactive()
+    # base.mark_bar().encode(alt.Y('Open:Q'), alt.Y2('Close:Q')),).interactive()
+        st.markdown('#')
+        st.altair_chart(base, use_container_width = True )
+
+
+        # df = pd.DataFrame(
+        #  np.random.randn(200, 3),
+        #  columns=['a', 'b', 'c'])
+        #
+        # c = alt.Chart(df).mark_circle().encode(
+        #      x='a', y='b', size='c', color='c', tooltip=['a', 'b', 'c'])
+        #
+        # st.altair_chart(c, use_container_width=True)
+# --------------------------------------------------------------------------------------------------------------------------------
+    with st.expander('Worldwide Gross by Genres'):
+        df = pd.read_pickle('df_movies_budgets_actors_2022.pkl')
+
+
+        def get_genres(x):
+            try:
+                return x[0]
+            except:
+                return None
+
+        df['principal_genre'] = df['genres'].apply(get_genres)
+        df_genres = pd.DataFrame(df.groupby(['principal_genre','year'])['Worldwide Gross'].sum()).reset_index()
+        top_10_genres = df.groupby('principal_genre',as_index = False)['Worldwide Gross'].sum().sort_values('Worldwide Gross', ascending = False)[:10]['principal_genre'].to_list()
+        df_genres_to_plot = df_genres[df_genres['principal_genre'].isin(top_10_genres)]
+        top_genres = df.groupby('principal_genre',as_index = False)['Worldwide Gross'].sum().sort_values('Worldwide Gross', ascending = False)['principal_genre'].to_list()
+
+
+
+        genres_choice =  st.checkbox('Genres')
+        if genres_choice:
+
+            col_gen_1, col_gen_2 = st.columns([3,1])
+            with col_gen_1:
+
+                genres_choosed = st.multiselect("Alege gen:",top_genres,'Action')
+                df_genres_to_plot = df_genres[df_genres['principal_genre'].isin(genres_choosed)]
+
+            with col_gen_2:
+                st.markdown('#')
+
+                select_all = st.checkbox('Select all')
+                if select_all:
+                    df_genres_to_plot = df_genres[df_genres['principal_genre'].isin(top_genres)]
+
+
+
+        fig = plt.figure(figsize=(12,4))
+        sns.lineplot(x = 'year', y = 'Worldwide Gross', hue = 'principal_genre', data = df_genres_to_plot)
+
+        # st.pyplot(fig)
+
+
+        base = alt.Chart(df_genres_to_plot).mark_line().encode(
+        x='year',
+        y='Worldwide Gross',
+        color='principal_genre'
+        #strokeDash='principal_genre',
+        )
+        st.markdown('#')
+        st.altair_chart(base, use_container_width = True)
+
+    with st.expander('Genres Frequency'):
+
+        movie_genres = df['genres'].to_list()
+
+
+
+        genres_list = []
+
+        for x in movie_genres:
+            try:
+                for i in x:
+                    genres_list.append(i)
+            except:
+                pass
+
+
+        genres_unique = list(set(genres_list))
+
+
+        dict_frequency = {}
+
+        for x in genres_unique:
+            dict_frequency[x] = genres_list.count(x)
+
+
+        tone = 100 # define the color of the words
+        f, ax = plt.subplots(figsize=(14, 6))
+        wordcloud = WordCloud(width=550,height=300, background_color='white',
+                              max_words=1628,relative_scaling=0.7,
+                              normalize_plurals=False)
+        c = wordcloud.generate_from_frequencies(dict_frequency)
+        plt.imshow(wordcloud, interpolation="bilinear")
+        plt.axis('off')
+        plt.show()
+
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+
+        st.markdown('#')
+        st.pyplot()
+
+# --------------------------------------------------------------------------------------------
+
+    with st.expander('Heatmap'):
+
+        df = pd.read_pickle('df_grouped_months_years.pkl')
+
+        a = df.pivot('month_number','year','Worldwide Gross')
+
+        fig = plt.figure(figsize=(12,4))
+        ax = sns.heatmap(a, cmap = 'Blues', linewidths=.5)
+
+        st.pyplot(fig)
