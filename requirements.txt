@@ -13,4 +13,4 @@ datetime
 imdbpy
 altair
 wordcloud
-streamlit-lottie
+streamlit_lottie
