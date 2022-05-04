@@ -13,3 +13,5 @@ datetime
 imdbpy
 altair
 wordcloud
+json
+streamlit_lottie
