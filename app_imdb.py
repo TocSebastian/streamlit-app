@@ -94,6 +94,11 @@ if menu_id == 'Home':
         st_lottie(lottie_movie,speed =1,quality = 'low',height = 300, width = 700, key = 'Movie')
 
     with hp2:
+        st.markdown('##')
+        st.markdown('##')
+        st.markdown('##')
+        st.markdown('##')
+        
         st_lottie(lottie_graphs,speed =1,quality = 'low',height = 300, width = 700, key = 'Graph')
 
 
