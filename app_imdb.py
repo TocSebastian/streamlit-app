@@ -81,7 +81,7 @@ if menu_id == 'Home':
           font: bold 20px Courier;
         }}
         </style>
-        <p class="a">Hi, i am Sebastian 👋  </p>
+        <p class="a">Hi, I am Sebastian 👋  </p>
         """
         st.markdown(html_hello, unsafe_allow_html = True)
 
@@ -98,11 +98,13 @@ if menu_id == 'Home':
         st.markdown('##')
         st.markdown('##')
         st.markdown('##')
-        
+
         st_lottie(lottie_graphs,speed =1,quality = 'low',height = 300, width = 700, key = 'Graph')
 
 
-    # st.markdown('##')
+    st.markdown('##')
+    st.markdown('##')
+
     st.header('📬 Connect with me ')
 
     ab1,ab2,ab3 = st.columns([1,1,80])
