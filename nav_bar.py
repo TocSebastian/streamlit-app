@@ -19,6 +19,8 @@ import imdb
 import altair as alt
 import ast
 from wordcloud import WordCloud, STOPWORDS
+import json
+from streamlit_lottie import st_lottie
 
 img = Image.open('logo.svg.png')
 
@@ -52,7 +54,65 @@ menu_id = hc.nav_bar(
 
 
 if menu_id == 'Home':
-    st.title('Hello viewer!')
+
+    def load_lottie_url(url:str):
+        r = requests.get(url)
+        if r.status_code != 200:
+            return  None
+        return r.json()
+
+    lottie_wave = load_lottie_url('https://assets3.lottiefiles.com/packages/lf20_dpohsucu.json')
+
+    lottie_graphs = load_lottie_url('https://assets7.lottiefiles.com/packages/lf20_sr19osee.json')
+
+    lottie_movie = load_lottie_url('https://assets7.lottiefiles.com/packages/lf20_cbrbre30.json')
+
+
+
+
+    hp1, hp2 =st.columns(2)
+
+    with hp1:
+
+        st.markdown('##')
+        html_hello = f"""
+        <style>
+        p.a {{
+          font: bold 20px Courier;
+        }}
+        </style>
+        <p class="a">Hi, i am Sebastian 👋  </p>
+        """
+        st.markdown(html_hello, unsafe_allow_html = True)
+
+        # st.write('Avem aici un GIF',"![Your Awsome GIF](https://www.pngfind.com/pngs/m/28-288401_waving-hand-emoji-svg-png-download-emoji-hand.png)")
+        # st.write('Avem aici un GIF',"![Your Awsome GIF](https://c.tenor.com/z2xJqhCpneIAAAAM/wave-hand.gif)")
+
+        st.header('An aspiring Data Scientist from Romania')
+        st.write('I am passionate about Data Science and Movies and this project is the product of that.')
+
+        st_lottie(lottie_movie,speed =1,quality = 'low',height = 300, width = 700, key = 'Movie')
+
+    with hp2:
+        st_lottie(lottie_graphs,speed =1,quality = 'low',height = 300, width = 700, key = 'Graph')
+
+
+    # st.markdown('##')
+    st.header('📬 Connect with me ')
+
+    ab1,ab2,ab3 = st.columns([1,1,80])
+
+
+
+    with ab1:
+        st.image('linkedin.png', width = 25)
+        st.image('github.png', width = 40)
+
+    with ab3:
+        st.write("[LinkedIn](https://www.linkedin.com/in/toc-sebastian-b15193217/)")
+        st.write("[GitHub](https://github.com/TocSebastian)")
+
+
 # ------------------------------------------------------------------------------
 elif menu_id == 'Movies Dataframe':
     st.title("Movies by Rating")
@@ -85,7 +145,7 @@ elif menu_id == 'Movies Dataframe':
     if all_meta:                                                                    #
         metascore = 'all'                                                           #  ---> metascore sidebar widget
     else:                                                                           #
-        metascore = st.sidebar.select_slider('Metascore',metascore_colors)          #
+        metascore = st.sidebar.select_slider('Metascore',metascore_colors,'green')          #
                                                                                     #
     color = metascore_dict[metascore]                                               #
 # ----------------------------------------------------------------------------------
@@ -787,7 +847,7 @@ elif menu_id == "Analytics":
         df_new = pd.merge(df_ratings[['name', 'nota']], df,  left_on = 'name', right_on = 'Name')
         df_new = df_new.sort_values('nota', ascending = False).drop_duplicates('name', keep = 'first')
         # df1.sort_values('Count').drop_duplicates('Name', keep='last')
-        df_new.shape
+        # df_new.shape
 
         num_of_movies = st.slider('Number of Movies displayed:',100,df_new.shape[0],100,50)
 
