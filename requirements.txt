@@ -1,4 +1,4 @@
-streamlit==1.8.1
+streamlit
 hydralit==1.0.12
 pandas
 matplotlib==3.5.1
@@ -13,3 +13,4 @@ datetime
 imdbpy
 altair
 wordcloud
+streamlit_lottie
